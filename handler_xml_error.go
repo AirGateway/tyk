@@ -113,7 +113,7 @@ func (e XMLErrorHandler) HandleError(w http.ResponseWriter, r *http.Request, err
 	// Report in health check
 	ReportHealthCheckValue(e.Spec.Health, BlockedRequestLog, "-1")
 
-	w.Header().Add("Content-Type", "application/json")
+	w.Header().Add("Content-Type", "application/xml")
 	w.Header().Add("X-Generator", "tyk.io")
 	// Close connections
 	if config.CloseConnections {
@@ -123,7 +123,9 @@ func (e XMLErrorHandler) HandleError(w http.ResponseWriter, r *http.Request, err
 	log.Debug("Returning error header")
 	w.WriteHeader(errCode)
 	thisError := APIError{fmt.Sprintf("%s", err)}
-	templates.ExecuteTemplate(w, "error.json", &thisError)
+
+  w.Write([]byte("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"))
+	templates.ExecuteTemplate(w, "error.xml", &thisError)
 	if doMemoryProfile {
 		pprof.WriteHeapProfile(profileFile)
 	}
