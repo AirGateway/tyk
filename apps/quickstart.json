@@ -6,9 +6,11 @@
         "location": "",
         "key": ""
     },
-    "use_keyless": true,
+    "use_basic_auth": true,
+    "use_keyless": false,
+    "use_oauth2": false,
     "auth": {
-        "auth_header_name": ""
+        "auth_header_name": "Authorization"
     },
     "version_data": {
         "not_versioned": true,
