@@ -47,22 +47,24 @@ func (e XMLErrorHandler) HandleError(w http.ResponseWriter, r *http.Request, err
 		r.URL.Path = "/" + r.URL.Path
 
 		OauthClientID := ""
+		var alias string
 		tags := make([]string, 0)
 		thisSessionState := context.Get(r, SessionData)
 
 		if thisSessionState != nil {
 			OauthClientID = thisSessionState.(SessionState).OauthClientID
+			alias = thisSessionState.(SessionState).Alias
 			tags = thisSessionState.(SessionState).Tags
 		}
 
 		var requestCopy *http.Request
-		if config.AnalyticsConfig.EnableDetailedRecording {
+		if RecordDetail(r) {
 			requestCopy = CopyHttpRequest(r)
 		}
 
 		rawRequest := ""
 		rawResponse := ""
-		if config.AnalyticsConfig.EnableDetailedRecording {
+		if RecordDetail(r) {
 			if requestCopy != nil {
 				// Get the wire format representation
 				var wireFormatReq bytes.Buffer
@@ -91,9 +93,14 @@ func (e XMLErrorHandler) HandleError(w http.ResponseWriter, r *http.Request, err
 			0,
 			rawRequest,
 			rawResponse,
+			GetIPFromRequest(r),
+			GeoData{},
 			tags,
+			alias,
 			time.Now(),
 		}
+
+		thisRecord.GetGeo(GetIPFromRequest(r))
 
 		expiresAfter := e.Spec.ExpireAnalyticsAfter
 		if config.EnforceOrgDataAge {
@@ -114,7 +121,12 @@ func (e XMLErrorHandler) HandleError(w http.ResponseWriter, r *http.Request, err
 	ReportHealthCheckValue(e.Spec.Health, BlockedRequestLog, "-1")
 
 	w.Header().Add("Content-Type", "application/xml")
-	w.Header().Add("X-Generator", "tyk.io")
+
+	//If the config option is not set or is false, add the header
+	if !config.HideGeneratorHeader {
+		w.Header().Add("X-Generator", "tyk.io")
+	}
+
 	// Close connections
 	if config.CloseConnections {
 		w.Header().Add("Connection", "close")
@@ -123,8 +135,6 @@ func (e XMLErrorHandler) HandleError(w http.ResponseWriter, r *http.Request, err
 	log.Debug("Returning error header")
 	w.WriteHeader(errCode)
 	thisError := APIError{fmt.Sprintf("%s", err)}
-
-  w.Write([]byte("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"))
 	templates.ExecuteTemplate(w, "error.xml", &thisError)
 	if doMemoryProfile {
 		pprof.WriteHeapProfile(profileFile)
