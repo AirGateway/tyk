@@ -129,6 +129,9 @@ func setupGlobals() {
 	templateFile := fmt.Sprintf("%s/error.json", config.TemplatePath)
 	templates = template.Must(template.ParseFiles(templateFile))
 
+	XmlTemplateFile := fmt.Sprintf("%s/error.xml", config.TemplatePath)
+	templates = template.Must(template.ParseFiles(XmlTemplateFile))
+
 	// Set up global JSVM
 	if config.EnableJSVM {
 		GlobalEventsJSVM.Init(config.TykJSPath)
