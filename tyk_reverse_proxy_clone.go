@@ -187,7 +187,7 @@ type ReverseProxy struct {
 	FlushInterval time.Duration
 
 	TykAPISpec      *APISpec
-	ErrorHandler    ErrorHandler
+	ErrorHandler    XMLErrorHandler
 	ResponseHandler ResponseChain
 }
 
@@ -309,7 +309,7 @@ func (p *ReverseProxy) ReturnRequestServeHttp(rw http.ResponseWriter, req *http.
 }
 
 func (p *ReverseProxy) New(c interface{}, spec *APISpec) (TykResponseHandler, error) {
-	p.ErrorHandler = ErrorHandler{TykMiddleware: &TykMiddleware{spec, p}}
+	p.ErrorHandler = XMLErrorHandler{TykMiddleware: &TykMiddleware{spec, p}}
 	return nil, nil
 }
 

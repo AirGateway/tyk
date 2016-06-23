@@ -43,7 +43,7 @@ func CreateMiddleware(mw TykMiddlewareImplementation, tykMwSuper *TykMiddleware)
 			} else {
 				reqErr, errCode := mw.ProcessRequest(w, r, thisMwConfiguration)
 				if reqErr != nil {
-					handler := ErrorHandler{tykMwSuper}
+					handler := XMLErrorHandler{tykMwSuper}
 					handler.HandleError(w, r, reqErr.Error(), errCode)
 					return
 				}
